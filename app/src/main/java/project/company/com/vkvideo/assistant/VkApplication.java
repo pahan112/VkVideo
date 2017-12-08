@@ -1,4 +1,4 @@
-package project.company.com.vkvideo;
+package project.company.com.vkvideo.assistant;
 
 import android.content.Intent;
 

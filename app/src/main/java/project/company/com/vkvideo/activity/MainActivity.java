@@ -7,22 +7,48 @@ import android.util.Log;
 
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKCallback;
-import com.vk.sdk.VKScope;
 import com.vk.sdk.VKSdk;
 import com.vk.sdk.api.VKError;
 
-import butterknife.OnClick;
 import project.company.com.vkvideo.R;
+import project.company.com.vkvideo.fragment.LoginFragment;
+import project.company.com.vkvideo.fragment.VideoFragment;
 
 public class MainActivity extends AppCompatActivity {
-    private String[] strings = new String[]{VKScope.VIDEO};
+    private boolean isResumed = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.container_fragment, new VideoFragment()).commit();
+        }
+        VKSdk.wakeUpSession(this, new VKCallback<VKSdk.LoginState>() {
+            @Override
+            public void onResult(VKSdk.LoginState res) {
+                if (isResumed) {
+                    switch (res) {
+                        case LoggedOut:
+                            showLogin();
+                            break;
+                        case LoggedIn:
+                            showLogout();
+                            break;
+                        case Pending:
+                            break;
+                        case Unknown:
+                            break;
+                    }
+                }
 
-        VKSdk.login(this, strings);
+            }
+
+            @Override
+            public void onError(VKError error) {
+
+            }
+        });
     }
 
     @Override
@@ -30,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
         if (!VKSdk.onActivityResult(requestCode, resultCode, data, new VKCallback<VKAccessToken>() {
             @Override
             public void onResult(VKAccessToken res) {
+                startActivity(new Intent(getBaseContext(), MainActivity.class));
                 Log.d("myLog", "good");
             }
 
@@ -41,9 +68,35 @@ public class MainActivity extends AppCompatActivity {
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
-    @OnClick(R.id.btn_logOut)
-    void clickLogout(){
-        VKSdk.logout();
-        finish();
+
+    private void showLogin() {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.container_fragment, new LoginFragment())
+                .commit();
+    }
+
+    private void showLogout() {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.container_fragment, new VideoFragment())
+                .commit();
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        isResumed = true;
+        if (VKSdk.isLoggedIn()) {
+            showLogout();
+        } else {
+            showLogin();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        isResumed = false;
+        super.onPause();
     }
 }
