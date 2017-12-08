@@ -14,7 +14,7 @@ import project.company.com.vkvideo.R;
 import project.company.com.vkvideo.fragment.LoginFragment;
 import project.company.com.vkvideo.fragment.VideoFragment;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements VideoFragment.LogOut{
     private boolean isResumed = false;
 
     @Override
@@ -98,5 +98,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         isResumed = false;
         super.onPause();
+    }
+
+    @Override
+    public void clickLogOut() {
+        VKSdk.logout();
+        if (!VKSdk.isLoggedIn()) {
+            showLogin();
+        }
     }
 }

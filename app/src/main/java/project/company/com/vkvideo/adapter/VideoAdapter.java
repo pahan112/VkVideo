@@ -17,15 +17,14 @@ import butterknife.ButterKnife;
 import project.company.com.vkvideo.R;
 import project.company.com.vkvideo.model.VideoItem;
 
-/**
- * Created by Pahan on 08.12.2017.
- */
 
 public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHolder> {
     private List<VideoItem> videoItems = new ArrayList<>();
+    private PlayVideo playVideo;
 
-    public VideoAdapter(List<VideoItem> videoItems) {
+    public VideoAdapter(List<VideoItem> videoItems ,PlayVideo playVideo) {
         this.videoItems = videoItems;
+        this.playVideo = playVideo;
     }
 
     @Override
@@ -56,7 +55,7 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
             ButterKnife.bind(this, itemView);
         }
 
-        public void bind(VideoItem videoItem) {
+        public void bind(final VideoItem videoItem) {
             title.setText(videoItem.getTitle());
             int minutes = (videoItem.getDurating() % 3600) / 60;
             int seconds = videoItem.getDurating() % 60;
@@ -65,6 +64,15 @@ public class VideoAdapter extends RecyclerView.Adapter<VideoAdapter.VideoViewHol
                     .with(itemView.getContext())
                     .load(videoItem.getPhoto())
                     .into(image);
+            image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    playVideo.clickItem(videoItem.getPlayer());
+                }
+            });
         }
+    }
+    public interface PlayVideo{
+        void clickItem(String url);
     }
 }

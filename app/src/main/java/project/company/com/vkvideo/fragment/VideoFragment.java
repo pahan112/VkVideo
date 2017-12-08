@@ -1,11 +1,12 @@
 package project.company.com.vkvideo.fragment;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,16 +23,19 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import project.company.com.vkvideo.R;
+import project.company.com.vkvideo.activity.WebActivity;
 import project.company.com.vkvideo.adapter.VideoAdapter;
 import project.company.com.vkvideo.model.VideoItem;
 
 
-public class VideoFragment extends Fragment {
+public class VideoFragment extends Fragment implements VideoAdapter.PlayVideo {
     @BindView(R.id.rv_video)
     RecyclerView mRecyclerView;
     private VideoAdapter videoAdapter;
     private List<VideoItem> mVideoItems = new ArrayList<>();
+    LogOut logOut;
 
     @Nullable
     @Override
@@ -40,7 +44,8 @@ public class VideoFragment extends Fragment {
         ButterKnife.bind(this, rootView);
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
+        videoAdapter = new VideoAdapter(mVideoItems, this);
+        mRecyclerView.setAdapter(videoAdapter);
 
         final VKRequest video = VKApi.video().get(VKParameters.from());
         video.executeWithListener(new VKRequest.VKRequestListener() {
@@ -48,16 +53,35 @@ public class VideoFragment extends Fragment {
             public void onComplete(VKResponse response) {
                 super.onComplete(response);
                 VKList<VKApiVideo> list = (VKList) response.parsedModel;
-                for (VKApiVideo video1:list){
-                    mVideoItems.add(new VideoItem(video1.title,video1.duration,video1.photo_320,video1.player));
+                for (VKApiVideo video1 : list) {
+                    mVideoItems.add(new VideoItem(video1.title, video1.duration, video1.photo_320, video1.player));
                 }
-                Log.d("myLog",mVideoItems.toString());
-                videoAdapter =new VideoAdapter(mVideoItems);
-                mRecyclerView.setAdapter(videoAdapter);
+                videoAdapter.notifyDataSetChanged();
             }
         });
         return rootView;
     }
 
-   
+
+    @Override
+    public void clickItem(String url) {
+        Intent intent = new Intent(getContext(), WebActivity.class);
+        intent.putExtra("EXTRA_SESSION_ID", url);
+        startActivity(intent);
+    }
+
+    @OnClick(R.id.btn_logOut)
+    void clickLogOut() {
+        logOut.clickLogOut();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        logOut = (LogOut) context;
+    }
+
+    public interface LogOut {
+        void clickLogOut();
+    }
 }
